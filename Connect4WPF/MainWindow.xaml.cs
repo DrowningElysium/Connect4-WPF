@@ -191,22 +191,22 @@ namespace Connect4WPF
             }
 
             // Just to make sure we don't get stuck somewhere.
-            if (this._ai.IsAiTurn())
-            {
-                this._ai.MakeMove();
+            //if (this._ai.IsAiTurn())
+            //{
+            //    this._ai.MakeMove();
 
-                return;
-            }
+            //    return;
+            //}
 
             int x = Grid.GetColumn((UIElement) sender);
             this._game.PlayColumn(x);
 
             this.UpdateCurrentPlayer();
 
-            // Let AI also directly do it's thing
-            this._ai.MakeMove();
+            //// Let AI also directly do it's thing
+            //this._ai.MakeMove();
 
-            this.UpdateCurrentPlayer();
+            //this.UpdateCurrentPlayer();
         }
 
         private void NewGameButtonEventHandler(object sender, RoutedEventArgs e)

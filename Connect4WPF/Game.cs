@@ -248,12 +248,12 @@ namespace Connect4WPF
 
         public bool IsOutsideGameArea(int x, int y)
         {
-            if (x < 0 || x >= this._columns - 1)
+            if (x < 0 || x >= this._columns)
             {
                 return true; 
             }
 
-            if (y < 0 || y >= this._rows - 1)
+            if (y < 0 || y >= this._rows)
             {
                 return true;
             }

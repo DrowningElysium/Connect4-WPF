@@ -27,7 +27,7 @@ namespace Connect4WPF
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
             for (int x = 0; x < this._game.GetColumnAmount(); x++)
             {
-                moves.Add(Tuple.Create(x, this.MiniMax(6, this._game)));
+                moves.Add(Tuple.Create(x, this.MiniMax(6, this._game, false)));
             }
 
             int maxMoveScore = moves.Max(t => t.Item2);
@@ -41,7 +41,7 @@ namespace Connect4WPF
         }
 
         // Credits to: https://stackoverflow.com/a/36802499
-        private int MiniMax(int depth, Game game)
+        private int MiniMax(int depth, Game game, bool maximizingPlayer)
         {
             if (depth <= 0 || ! game.SpotLeftOnGameBoard())
             {
@@ -60,21 +60,15 @@ namespace Connect4WPF
             }
 
             // Determine if we want to find the best score for the player or AI.
-            bool maximizingPlayer = this.IsMaximizingPlayer(game);
             int bestValue = maximizingPlayer ? -1 : 1;
             for (int x = 0; x < game.GetColumnAmount(); x++)
             {
                 Game copy = (Game)game.Clone();
-                int score = this.MiniMax(depth - 1, copy);
+                int score = this.MiniMax(depth - 1, copy, ! maximizingPlayer);
                 bestValue = maximizingPlayer ? Math.Max(bestValue, score) : Math.Min(bestValue, score);
             }
 
             return bestValue;
-        }
-
-        private bool IsMaximizingPlayer(Game game)
-        {
-            return game.GetCurrentPlayerColor().Equals(Colors.Red);
         }
     }
 }
