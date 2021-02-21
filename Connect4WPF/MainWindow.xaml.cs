@@ -26,7 +26,7 @@ namespace Connect4WPF
         private Game _game;
         private Ellipse[,] _grid;
 
-        private bool _gameEnded = false;
+        private ArtificialIntelligence _ai;
 
         public MainWindow()
         {
@@ -39,6 +39,8 @@ namespace Connect4WPF
             this._game = new Game(this._gameWidth, this._gameHeight);
             this._grid = new Ellipse[this._gameWidth, this._gameHeight];
 
+            this._ai = new ArtificialIntelligence(this._game);
+
             this.UpdateCurrentPlayer();
             this.DrawGrid();
 
@@ -49,7 +51,6 @@ namespace Connect4WPF
         private void GameEnded(object sender, EventArgs e)
         {
             Token token = (Token)sender;
-            this._gameEnded = true;
 
             string winner = "Red";
             if (token.GetColor() == Colors.Yellow)
@@ -65,12 +66,11 @@ namespace Connect4WPF
             this.RedrawGrid();
         }
 
-        public void Reset()
+        private void Reset()
         {
             this._game.Reset();
             this.UpdateCurrentPlayer();
             this.RedrawGrid();
-            this._gameEnded = false;
 
         }
 
@@ -79,7 +79,7 @@ namespace Connect4WPF
             this.CurrentPlayer.Fill = new SolidColorBrush(this._game.GetCurrentPlayerColor());
         }
 
-        public void DrawGrid()
+        private void DrawGrid()
         {
             this.CreateGridDefinitions();
 
@@ -102,7 +102,7 @@ namespace Connect4WPF
             }
         }
 
-        public void RedrawGrid()
+        private void RedrawGrid()
         {
             for (int x = 0; x < this._gameWidth; x++)
             {
@@ -150,7 +150,7 @@ namespace Connect4WPF
             this.ProgramGrid.ColumnDefinitions.Add(finalCol);
         }
 
-        public Rectangle CreateBoard()
+        private Rectangle CreateBoard()
         {
             Rectangle board = new Rectangle();
 
@@ -168,7 +168,7 @@ namespace Connect4WPF
             return board;
         }
 
-        public Ellipse CreateGameToken(Color color)
+        private Ellipse CreateGameToken(Color color)
         {
             Ellipse ell = new Ellipse();
 
@@ -185,13 +185,26 @@ namespace Connect4WPF
 
         private void ButtonEventHandler(object sender, MouseButtonEventArgs e)
         {
-            if (this._gameEnded)
+            if (this._game.HasGameEnded())
             {
+                return;
+            }
+
+            // Just to make sure we don't get stuck somewhere.
+            if (this._ai.IsAiTurn())
+            {
+                this._ai.MakeMove();
+
                 return;
             }
 
             int x = Grid.GetColumn((UIElement) sender);
             this._game.PlayColumn(x);
+
+            this.UpdateCurrentPlayer();
+
+            // Let AI also directly do it's thing
+            this._ai.MakeMove();
 
             this.UpdateCurrentPlayer();
         }

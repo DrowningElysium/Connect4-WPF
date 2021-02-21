@@ -3,13 +3,15 @@ using System.Windows.Media;
 
 namespace Connect4WPF
 {
-    class Game
+    class Game : ICloneable
     {
-        private int _width;
-        private int _height;
+        private int _columns;
+        private int _rows;
 
         private Token[,] _grid;
         private Color _currentColor;
+
+        private bool _gameHasWinner;
 
         public event EventHandler WinnerAnnounced;
         public event EventHandler GridUpdated;
@@ -19,17 +21,42 @@ namespace Connect4WPF
         {
         }
 
-        public Game(int width, int height)
+        public Game(int columns, int rows)
         {
-            this._width = width;
-            this._height = height;
+            this._columns = columns;
+            this._rows = rows;
 
             this.Reset();
+        }
+
+        // For Cloning
+        public Game(int columns, int rows, Token[,] grid, Color currentColor, bool gameHasWinner)
+        {
+            this._columns = columns;
+            this._rows = rows;
+            this._grid = grid;
+            this._currentColor = currentColor;
+            this._gameHasWinner = gameHasWinner;
         }
 
         public Color GetCurrentPlayerColor()
         {
             return this._currentColor;
+        }
+
+        public int GetColumnAmount()
+        {
+            return this._columns;
+        }
+
+        public int GetRowAmount()
+        {
+            return this._rows;
+        }
+
+        public Token[,] GetGrid()
+        {
+            return this._grid;
         }
 
         public Token GetGridToken(int x, int y)
@@ -39,12 +66,13 @@ namespace Connect4WPF
 
         public void Reset()
         {
-            this._grid = new Token[this._width, this._height];
+            this._grid = new Token[this._columns, this._rows];
             this._currentColor = Colors.Red;
+            this._gameHasWinner = false;
 
-            for (int x = 0; x < this._width; x++)
+            for (int x = 0; x < this._columns; x++)
             {
-                for (int y = 0; y < this._height; y++)
+                for (int y = 0; y < this._rows; y++)
                 {
                     this._grid[x, y] = new Token(x, y);
                 }
@@ -54,9 +82,47 @@ namespace Connect4WPF
             this.AnnounceGridUpdate();
         }
 
+        public bool HasGameEnded()
+        {
+            if (this.HasGameWinner())
+            {
+                return true;
+            }
+
+            return ! this.SpotLeftOnGameBoard();
+        }
+
+        public bool HasGameWinner()
+        {
+            return this._gameHasWinner;
+        }
+
+        public Color GetWinner()
+        {
+            if (this._gameHasWinner)
+            {
+                return this._currentColor;
+            }
+
+            return Colors.White;
+        }
+
+        public bool SpotLeftOnGameBoard()
+        {
+            foreach (Token token in this._grid)
+            {
+                if (! token.IsSet())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void PlayColumn(int x)
         {
-            for (int y = 0; y < this._height; y++)
+            for (int y = 0; y < this._rows; y++)
             {
                 Token current = _grid[x, y];
                 if (current.IsSet())
@@ -69,6 +135,7 @@ namespace Connect4WPF
                 {
                     // Throw an event so display logic is not part of game logic.
                     this.AnnounceWinner(current);
+                    this._gameHasWinner = true;
 
                     return;
                 }
@@ -78,14 +145,19 @@ namespace Connect4WPF
             }
         }
 
-        public void UpdateTokenColor(Token token, Color color)
+        private void UpdateTokenColor(Token token, Color color)
         {
             token.SetColor(color);
             // Throw an event so display logic is not part of game logic.
             this.AnnounceGridUpdate();
         }
 
-        public void SwitchPlayer()
+        private void SwitchPlayer()
+        {
+            this.SwitchPlayerColor();
+        }
+
+        private void SwitchPlayerColor()
         {
             if (this._currentColor == Colors.Red)
             {
@@ -96,7 +168,7 @@ namespace Connect4WPF
             this._currentColor = Colors.Red;
         }
 
-        public bool DoesTokenWin(Token token)
+        private bool DoesTokenWin(Token token)
         {
             // Checks for 3 instead of 4 as we don't count the token we are checking.
             if (this.GetAmountOnBottomSide(token) >= 3)
@@ -123,42 +195,42 @@ namespace Connect4WPF
             return false;
         }
 
-        public int GetAmountOnTopLeftSide(Token token)
+        private int GetAmountOnTopLeftSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, -1, 1);
         }
 
-        public int GetAmountOnLeftSide(Token token)
+        private int GetAmountOnLeftSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, -1, 0);
         }
 
-        public int GetAmountOnBottomLeftSide(Token token)
+        private int GetAmountOnBottomLeftSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, -1, -1);
         }
 
-        public int GetAmountOnBottomSide(Token token)
+        private int GetAmountOnBottomSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, 0, -1);
         }
 
-        public int GetAmountOnBottomRightSide(Token token)
+        private int GetAmountOnBottomRightSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, 1, -1);
         }
 
-        public int GetAmountOnRightSide(Token token)
+        private int GetAmountOnRightSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, 1, 0);
         }
 
-        public int GetAmountOnTopRightSide(Token token)
+        private int GetAmountOnTopRightSide(Token token)
         {
             return this.GetAmountOfSameTokensInDirection(token, 1, 1);
         }
 
-        public int GetAmountOfSameTokensInDirection(Token token, int xIncrease, int yIncrease)
+        private int GetAmountOfSameTokensInDirection(Token token, int xIncrease, int yIncrease)
         {
             if (this.IsOutsideGameArea(token.GetX() + xIncrease, token.GetY() + yIncrease))
             {
@@ -176,12 +248,12 @@ namespace Connect4WPF
 
         public bool IsOutsideGameArea(int x, int y)
         {
-            if (x < 0 || x >= this._width - 1)
+            if (x < 0 || x >= this._columns - 1)
             {
                 return true; 
             }
 
-            if (y < 0 || y >= this._height - 1)
+            if (y < 0 || y >= this._rows - 1)
             {
                 return true;
             }
@@ -189,9 +261,9 @@ namespace Connect4WPF
             return false;
         }
 
-        public bool IsInsideGameArea(int x, int y)
+        private bool IsInsideGameArea(int x, int y)
         {
-            return !this.IsOutsideGameArea(x, y);
+            return ! this.IsOutsideGameArea(x, y);
         }
 
         public virtual void AnnounceWinner(Token token)
@@ -210,6 +282,11 @@ namespace Connect4WPF
             {
                 handler(this._grid, EventArgs.Empty);
             }
+        }
+
+        public object Clone()
+        {
+            return new Game(_columns, _rows, (Token[,]) _grid.Clone(), _currentColor, _gameHasWinner);
         }
     }
 }
