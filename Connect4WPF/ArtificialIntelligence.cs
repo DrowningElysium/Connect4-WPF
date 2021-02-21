@@ -10,7 +10,9 @@ namespace Connect4WPF
     class ArtificialIntelligence
     {
         private Game _game;
-        private Random random = new Random();
+        private Random _random = new Random();
+
+        private int _depthLevel = 2;
 
         public ArtificialIntelligence(Game game)
         {
@@ -19,6 +21,12 @@ namespace Connect4WPF
 
         public void MakeMove()
         {
+            if (this._game.HasGameEnded())
+            {
+                return;
+            }
+
+
             if (! this.IsAiTurn())
             {
                 return;
@@ -27,13 +35,19 @@ namespace Connect4WPF
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
             for (int x = 0; x < this._game.GetColumnAmount(); x++)
             {
-                int score = this.MiniMax(5, this._game, false);
+                if (! this._game.PlayColumn(x))
+                {
+                    continue;
+                }
+
+                int score = this.MiniMax(this._depthLevel, this._game, false);
                 moves.Add(Tuple.Create(x, score));
+                this._game.RemoveTokenFromColumn(x);
             }
 
             int maxMoveScore = moves.Max(t => t.Item2);
             List<Tuple<int, int>> bestMoves = moves.Where(t => t.Item2 == maxMoveScore).ToList();
-            this._game.PlayColumn(bestMoves[this.random.Next(0, bestMoves.Count())].Item1);
+            this._game.PlayColumn(bestMoves[this._random.Next(0, bestMoves.Count())].Item1);
         }
 
         public bool IsAiTurn()
@@ -44,9 +58,15 @@ namespace Connect4WPF
         // Credits to: https://stackoverflow.com/a/36802499
         private int MiniMax(int depth, Game game, bool maximizingPlayer)
         {
-            if (depth <= 0 || ! game.SpotLeftOnGameBoard())
+
+            if (depth <= 0)
             {
                 return 0;
+            }
+
+            if (! game.SpotLeftOnGameBoard())
+            {
+                return -1000;
             }
 
             Color winner = game.GetWinner();
@@ -61,13 +81,19 @@ namespace Connect4WPF
             }
 
             // Determine if we want to find the best score for the player or AI.
-            int bestValue = maximizingPlayer ? -1 : 1;
+            int bestValue = 0;
             for (int x = 0; x < game.GetColumnAmount(); x++)
             {
-                Game copy = (Game)game.Clone();
-                copy.PlayColumn(x);
-                int score = this.MiniMax(depth - 1, copy, ! maximizingPlayer);
+                if (!this._game.PlayColumn(x))
+                {
+                    continue;
+                }
+
+                int score = this.MiniMax(depth - 1, game, ! maximizingPlayer);
+                //Console.WriteLine("depth: " + depth + ", x: " + x + ", score: " + score + ", bestValue: " + bestValue + ", Min: " + Math.Min(bestValue, score) + ", Max: " + Math.Max(bestValue, score));
                 bestValue = maximizingPlayer ? Math.Max(bestValue, score) : Math.Min(bestValue, score);
+                //Console.WriteLine("BestValue Result: " + bestValue);
+                this._game.RemoveTokenFromColumn(x);
             }
 
             return bestValue;

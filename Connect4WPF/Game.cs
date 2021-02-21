@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace Connect4WPF
 {
-    class Game : ICloneable
+    class Game
     {
         private int _columns;
         private int _rows;
@@ -109,18 +109,22 @@ namespace Connect4WPF
 
         public bool SpotLeftOnGameBoard()
         {
-            foreach (Token token in this._grid)
+            // For efficiency we start with the top row.
+            for (int y = this._rows - 1; y >= 0; y--)
             {
-                if (! token.IsSet())
+                for (int x = 0; x < this._columns; x++)
                 {
-                    return true;
+                    if (! this._grid[x, y].IsSet())
+                    {
+                        return true;
+                    }
                 }
             }
 
             return false;
         }
 
-        public void PlayColumn(int x)
+        public bool PlayColumn(int x)
         {
             for (int y = 0; y < this._rows; y++)
             {
@@ -131,8 +135,6 @@ namespace Connect4WPF
                 }
 
                 this.UpdateTokenColor(current, this._currentColor);
-                // Throw an event so display logic is not part of game logic.
-                this.AnnounceGridUpdate();
 
                 if (this.DoesTokenWin(current))
                 {
@@ -140,19 +142,35 @@ namespace Connect4WPF
                     this.AnnounceWinner(current);
                     this._gameHasWinner = true;
 
-                    return;
+                    return true;
                 }
 
                 this.SwitchPlayer();
-                return; // Early return so we don't fully loop and set everything in the row to the color.
+                return  true; // Early return so we don't fully loop and set everything in the row to the color.
+            }
+            return false;
+        }
+
+        public void RemoveTokenFromColumn(int x)
+        {
+            for (int y = this._rows - 1; y >= 0; y--)
+            {
+                Token current = this._grid[x, y];
+                if (current.IsSet())
+                {
+                    current.Reset();
+
+                    return;
+                }
             }
         }
 
         private void UpdateTokenColor(Token token, Color color)
         {
             token.SetColor(color);
-            //// Throw an event so display logic is not part of game logic.
-            //this.AnnounceGridUpdate();
+
+            // Throw an event so display logic is not part of game logic.
+            this.AnnounceGridUpdate();
         }
 
         private void SwitchPlayer()
@@ -285,26 +303,6 @@ namespace Connect4WPF
             {
                 handler(this._grid, EventArgs.Empty);
             }
-        }
-
-        public object Clone()
-        {
-            return new Game(_columns, _rows, this.CloneGrid(), _currentColor, _gameHasWinner);
-        }
-
-        // Array.Clone doesn't deep clone, so we have to do that ourselves.
-        private Token[,] CloneGrid()
-        {
-            Token[,] copy = new Token[this._columns, this._rows];
-            for (int x = 0; x < this._columns; x++)
-            {
-                for (int y = 0; y < this._rows; y++)
-                {
-                    copy[x, y] = (Token)this._grid[x, y].Clone();
-                }
-            }
-
-            return copy;
         }
     }
 }

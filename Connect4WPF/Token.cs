@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace Connect4WPF
 {
-    class Token : ICloneable
+    class Token
     {
         private Color _color;
         private int _x;
@@ -36,16 +36,14 @@ namespace Connect4WPF
             return this._y;
         }
 
+        public void Reset()
+        {
+            this._color = Colors.White;
+        }
+
         public bool IsSet()
         {
             return this._color != Colors.White;
-        }
-
-        public object Clone()
-        {
-            Token copy = new Token(this._x, this._y);
-            copy.SetColor(this._color);
-            return copy;
         }
     }
 }

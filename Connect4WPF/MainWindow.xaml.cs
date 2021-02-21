@@ -185,28 +185,15 @@ namespace Connect4WPF
 
         private void ButtonEventHandler(object sender, MouseButtonEventArgs e)
         {
-            if (this._game.HasGameEnded())
-            {
-                return;
-            }
-
-            // Just to make sure we don't get stuck somewhere.
-            if (this._ai.IsAiTurn())
-            {
-                this._ai.MakeMove();
-
-                return;
-            }
-
             int x = Grid.GetColumn((UIElement) sender);
             this._game.PlayColumn(x);
 
             this.UpdateCurrentPlayer();
 
             // Let AI also directly do it's thing
-            this._ai.MakeMove();
+            //this._ai.MakeMove();
 
-            this.UpdateCurrentPlayer();
+            //this.UpdateCurrentPlayer();
         }
 
         private void NewGameButtonEventHandler(object sender, RoutedEventArgs e)
