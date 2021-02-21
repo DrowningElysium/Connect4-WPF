@@ -28,7 +28,6 @@ namespace Connect4WPF
             for (int x = 0; x < this._game.GetColumnAmount(); x++)
             {
                 int score = this.MiniMax(5, this._game, false);
-                Console.WriteLine(x + ": " + score);
                 moves.Add(Tuple.Create(x, score));
             }
 
