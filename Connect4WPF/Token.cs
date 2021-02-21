@@ -1,43 +1,51 @@
-﻿using System.Windows.Media;
+﻿using System;
+using System.Windows.Media;
 
 namespace Connect4WPF
 {
-    class Token
+    class Token : ICloneable
     {
-        private Color color;
-        private int x;
-        private int y;
+        private Color _color;
+        private int _x;
+        private int _y;
 
         public Token(int x, int y)
         {
-            this.color = Colors.White;
-            this.x = x;
-            this.y = y;
+            this._color = Colors.White;
+            this._x = x;
+            this._y = y;
         }
 
         public Color GetColor()
         {
-            return this.color;
+            return this._color;
         }
 
         public void SetColor(Color color)
         {
-            this.color = color;
+            this._color = color;
         }
 
         public int GetX()
         {
-            return this.x;
+            return this._x;
         }
 
         public int GetY()
         {
-            return this.y;
+            return this._y;
         }
 
         public bool IsSet()
         {
-            return this.color != Colors.White;
+            return this._color != Colors.White;
+        }
+
+        public object Clone()
+        {
+            Token copy = new Token(this._x, this._y);
+            copy.SetColor(this._color);
+            return copy;
         }
     }
 }

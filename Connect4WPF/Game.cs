@@ -131,6 +131,9 @@ namespace Connect4WPF
                 }
 
                 this.UpdateTokenColor(current, this._currentColor);
+                // Throw an event so display logic is not part of game logic.
+                this.AnnounceGridUpdate();
+
                 if (this.DoesTokenWin(current))
                 {
                     // Throw an event so display logic is not part of game logic.
@@ -148,8 +151,8 @@ namespace Connect4WPF
         private void UpdateTokenColor(Token token, Color color)
         {
             token.SetColor(color);
-            // Throw an event so display logic is not part of game logic.
-            this.AnnounceGridUpdate();
+            //// Throw an event so display logic is not part of game logic.
+            //this.AnnounceGridUpdate();
         }
 
         private void SwitchPlayer()
@@ -286,7 +289,22 @@ namespace Connect4WPF
 
         public object Clone()
         {
-            return new Game(_columns, _rows, (Token[,]) _grid.Clone(), _currentColor, _gameHasWinner);
+            return new Game(_columns, _rows, this.CloneGrid(), _currentColor, _gameHasWinner);
+        }
+
+        // Array.Clone doesn't deep clone, so we have to do that ourselves.
+        private Token[,] CloneGrid()
+        {
+            Token[,] copy = new Token[this._columns, this._rows];
+            for (int x = 0; x < this._columns; x++)
+            {
+                for (int y = 0; y < this._rows; y++)
+                {
+                    copy[x, y] = (Token)this._grid[x, y].Clone();
+                }
+            }
+
+            return copy;
         }
     }
 }

@@ -27,7 +27,9 @@ namespace Connect4WPF
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
             for (int x = 0; x < this._game.GetColumnAmount(); x++)
             {
-                moves.Add(Tuple.Create(x, this.MiniMax(6, this._game, false)));
+                int score = this.MiniMax(5, this._game, false);
+                Console.WriteLine(x + ": " + score);
+                moves.Add(Tuple.Create(x, score));
             }
 
             int maxMoveScore = moves.Max(t => t.Item2);
@@ -64,6 +66,7 @@ namespace Connect4WPF
             for (int x = 0; x < game.GetColumnAmount(); x++)
             {
                 Game copy = (Game)game.Clone();
+                copy.PlayColumn(x);
                 int score = this.MiniMax(depth - 1, copy, ! maximizingPlayer);
                 bestValue = maximizingPlayer ? Math.Max(bestValue, score) : Math.Min(bestValue, score);
             }
